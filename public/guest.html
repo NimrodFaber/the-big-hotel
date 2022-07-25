@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <input type="text" data-role="name" placeholder="name" />
+    <input type="text" data-role="gender" placeholder="gender" />
+    <input type="date" data-role="birth" placeholder="birth" />
+    <input type="checkbox" data-role="isVip" placeholder="isVip" />
+    <button data-role="insert">save</button>
+    <br><br><br>
+    <h1>show guest</h1>
+       <label>guest
+            <select data-role="guest">
+                <option disabled="disabled" >loading data</option>
+            </select>
+        </label>
+        <input type="text" placeholder="name" name="name">
+        <input type="text" placeholder="gender" name="gender">
+        <input type="date" placeholder="birth" name="dateOfBirth">
+        <input type="checkbox" name="isVip">isVip
+
+        <button data-role="update">update</button>
+        <button data-role="delete">delete</button>
+        
+  </body>
+
+  <script>
+    $('[data-role="insert"]').click(function () {
+      let name = $('[data-role="name"]').val(),
+        gender = $('[data-role="gender"]').val(),
+        dateOfBirth = $('[data-role="birth"]').val(),
+        vip = $('[data-role="isVip"]');
+      let isVip = checkboleean(vip);
+      $.post("/guest", { name, gender, dateOfBirth, isVip }, (data) => {
+        console.log(data);
+      });
+    });
+
+    function checkboleean(istrue) {
+      if ($(istrue).is(":checked")) {
+        istrue = true;
+      } else {
+        istrue = false;
+      }
+      return istrue;
+    }
+
+
+    function guestnames(element,obj){
+         element.html('');
+$.each(obj,function(_,guest){
+    let option=$("<option>");
+        option.text(guest.name);
+        option.attr("value",guest._id);
+        console.log(option.val());
+        element.append(option)
+})
+    }
+
+    $.get("/guest",(response)=>{
+           const select = $('[data-role="guest"]');
+           guestnames(select, response.guest);
+        })
+
+
+
+
+
+  
+
+        function populateGuest(guest){
+            $.each(guest, (key, value)=>{
+                const element = $(`[name="${key}"]`);
+                element.attr('type') === 'checkbox' ? element.prop( "checked", value == true) : element.val(value)
+            });
+        }
+        $('[data-role="guest"]').change(function(){
+          /*   $(".mainInputsEdit").css("display", "block") */
+
+           console.log($(this).val());
+        //   fetch(`/guest/${$(this).val()}`).then((guest)=>guest.json()).then((guest)=>populateGuest(guest))
+        $.get(`/guest/${$(this).val()}`,(response)=>{
+           populateGuest(response);
+        })
+        })
+
+$('[data-role="update"]').click(function(){
+    let name=$('[name="name"]').val();
+    let gender=$('[name="gender"]').val();
+    let dateOfBirth=$('[name="dateOfBirth"]').val();
+    let isVip=$($('[name="isVip"]')).is(":checked");
+    let id=$('[data-role="guest"]').val();
+
+      fetch('/guest/'+id, {
+  method: 'PUT',
+   headers: {
+    'Content-Type': 'application/json',
+  },  
+  body:JSON.stringify({name,gender,dateOfBirth,isVip})
+})
+ .then(response => response.json())
+.then(data => {
+  console.log('Success:', data);
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+      })
+
+
+
+
+
+
+
+$('[data-role="delete"]').click(function(){
+    let id=$('[data-role="guest"]').val();
+        fetch('/guest/'+id, {
+  method: 'DELETE',
+   headers: {
+    'Content-Type': 'application/json',
+  },  
+  /* body:JSON.stringify({name,gender,dateOfBirth,isVip}) */
+})
+ .then(response => response.json())
+.then(data => {
+  console.log('Success:', data);
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+})
+
+  
+  </script>
+</html>

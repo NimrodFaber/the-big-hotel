@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+      <h1>show reservition</h1>
+       <label>roomNumber
+            <select data-role="room">
+                <option disabled="disabled" >loading data</option>
+            </select>
+        </label>
+       
+        <input type="checkbox"  data-role="haveBath">bath
+        <input type="number" placeholder="roomnumber"  data-role="roomNumber">
+        <input type="number" placeholder="capacity"  data-role="capacity">
+        <button data-role="btn">insert</button>
+
+        <br><br><br>
+        <input type="text" placeholder="orderNumber" data-role="resId">
+        <button  data-role="click"></button>
+        <h3>what you want to chenge?</h3>
+            <input type="checkbox" name="haveBath">bath
+        <input type="number" placeholder="roomnumber"  name="roomNumber">
+        <input type="number" placeholder="capacity"  name="capacity">
+        <button data-role="update">update</button>
+        <button data-role="delete">delete</button>
+    <script>
+            function roomnumber(element,obj){
+         element.html('');
+$.each(obj,function(_,room){
+    let option=$("<option>");
+        option.text(room.roomNumber);
+        option.attr("value",room._id);
+        console.log(option.val());
+        element.append(option)
+})
+    }
+
+      $.get("/room",(response)=>{
+           const select = $('[data-role="room"]');
+           roomnumber(select, response.room);
+        })
+
+
+
+            function populateRoom(room){
+            $.each(room, (key, value)=>{
+                const element = $(`[data-role="${key}"]`);
+                element.attr('type') === 'checkbox' ? element.prop( "checked", value == true) : element.val(value)
+            });
+        }
+
+           $('[data-role="room"]').change(function(){
+          /*   $(".mainInputsEdit").css("display", "block") */
+
+           console.log($(this).val());
+        //   fetch(`/guest/${$(this).val()}`).then((guest)=>guest.json()).then((guest)=>populateGuest(guest))
+        $.get(`/room/${$(this).val()}`,(response)=>{
+           populateRoom(response);
+        })
+        })
+
+
+
+
+
+           $('[data-role="btn"]').click(function () {
+        let cap = $('[data-role="capacity"]').val(),
+          bath = $(' [data-role="haveBath"]'),
+          room = $('[data-role="roomNumber"]').val();
+        let capacity = changeToNumber(cap);
+        let haveBath = checkboleean(bath);
+        let roomNumber = changeToNumber(room);
+let room_id=$('[data-role="room"]').val()
+        $.post("/reservition", { room_id, haveBath, roomNumber, capacity }, (data) => {
+          console.log(data);
+        });
+      });
+
+      function checkboleean(istrue) {
+        if ($(istrue).is(":checked")) {
+          istrue = true;
+        } else {
+          istrue = false;
+        }
+        return istrue;
+      }
+
+      function changeToNumber(str) {
+        parseFloat(str);
+        return str;
+      }
+
+$('[data-role="update"]').click(function(){
+    let bathh=$('[name="haveBath"]');
+    let capa=$('[name="capacity"]').val();
+    let numb=$('[name="roomNumber"]').val();
+    let capacity= changeToNumber(capa),
+    roomNumber= changeToNumber(numb),
+    haveBath= checkboleean(bathh)
+    let id=$('[data-role="resId"]').val();
+
+      fetch('/reservition/'+id, {
+  method: 'PUT',
+   headers: {
+    'Content-Type': 'application/json',
+  },  
+  body:JSON.stringify({haveBath,capacity,roomNumber})
+})
+ .then(response => response.json())
+.then(data => {
+  console.log('Success:', data);
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+      })
+
+   function populateRes(reservition){
+            $.each(reservition, (key, value)=>{
+                const element = $(`[name="${key}"]`);
+                element.attr('type') === 'checkbox' ? element.prop( "checked", value == true) : element.val(value)
+            });
+        }
+      $('[data-role="click"]').click(function () {
+               console.log($(this).val());
+               let id=$('[data-role="resId"]').val()
+        //   fetch(`/guest/${$(this).val()}`).then((guest)=>guest.json()).then((guest)=>populateGuest(guest))
+        $.get("/reservition/"+id,(response)=>{
+           populateRes(response);
+        })
+      })
+    </script>
+</body>
+</html>

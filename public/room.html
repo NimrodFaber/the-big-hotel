@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <input type="checkbox" name="isVip" />isVip
+    <input type="checkbox" name="haveBath" />haveBath
+    <input type="number" name="roomNumber" />roomNumber
+    <button data-role="btn">insert</button>
+   <br><br><br>
+    <h1>show room</h1>
+       <label>room
+            <select data-role="room">
+                <option disabled="disabled" >loading data</option>
+            </select>
+        </label>
+        <input type="checkbox"  data-role="isVip">vip
+        <input type="checkbox"  data-role="haveBath">bath
+        <input type="number" placeholder="roomnumber"  data-role="roomNumber">
+        <button data-role="update">update</button>
+        <button data-role="delete">delete</button>
+        <br><br><br>
+        <button data-role="getonlybath">only bath </button>
+
+        <div data-role="bathrooms"></div>
+        <button data-role="or"></button>
+        <div data-role="orbathorvip"></div>
+    <script>
+      $('[data-role="btn"]').click(function () {
+        let vip = $('[name="isVip"]'),
+          bath = $('[name="haveBath"]'),
+          room = $('[name="roomNumber"]').val();
+        let isVip = checkboleean(vip);
+        let haveBath = checkboleean(bath);
+        let roomNumber = changeToNumber(room);
+
+        $.post("/room", { isVip, haveBath, roomNumber }, (data) => {
+          console.log(data);
+        });
+      });
+
+      function checkboleean(istrue) {
+        if ($(istrue).is(":checked")) {
+          istrue = true;
+        } else {
+          istrue = false;
+        }
+        return istrue;
+      }
+
+      function changeToNumber(str) {
+        parseFloat(str);
+        return str;
+      }
+
+
+      
+    function roomnumber(element,obj){
+         element.html('');
+$.each(obj,function(_,room){
+    let option=$("<option>");
+        option.text(room.roomNumber);
+        option.attr("value",room._id);
+        console.log(option.val());
+        element.append(option)
+})
+    }
+
+
+    
+    $.get("/room",(response)=>{
+           const select = $('[data-role="room"]');
+           roomnumber(select, response.room);
+        })
+
+
+
+
+           function populateRoom(room){
+            $.each(room, (key, value)=>{
+                const element = $(`[data-role="${key}"]`);
+                element.attr('type') === 'checkbox' ? element.prop( "checked", value == true) : element.val(value)
+            });
+        }
+
+           $('[data-role="room"]').change(function(){
+          /*   $(".mainInputsEdit").css("display", "block") */
+
+           console.log($(this).val());
+        //   fetch(`/guest/${$(this).val()}`).then((guest)=>guest.json()).then((guest)=>populateGuest(guest))
+        $.get(`/room/${$(this).val()}`,(response)=>{
+           populateRoom(response);
+        })
+        })
+
+
+
+
+
+
+        $('[data-role="update"]').click(function(){
+   
+    let room=$('[data-role="roomNumber"]').val();
+    let isVip=$($('[data-role="isVip"]')).is(":checked");
+    let haveBath=$($('[data-role="haveBath"]')).is(":checked");
+    let id=$('[data-role="room"]').val();
+ let roomNumber = changeToNumber(room);
+      fetch('/room/'+id, {
+  method: 'PUT',
+   headers: {
+    'Content-Type': 'application/json',
+  },  
+  body:JSON.stringify({isVip,haveBath,roomNumber})
+})
+ .then(response => response.json())
+.then(data => {
+  console.log('Success:', data);
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+      })
+
+
+
+
+      $('[data-role="delete"]').click(function(){
+    let id=$('[data-role="room"]').val();
+        fetch('/room/'+id, {
+  method: 'DELETE',
+   headers: {
+    'Content-Type': 'application/json',
+  },  
+  /* body:JSON.stringify({name,gender,dateOfBirth,isVip}) */
+})
+ .then(response => response.json())
+.then(data => {
+  console.log('Success:', data);
+})
+.catch((error) => {
+  console.error('Error:', error);
+});
+})
+
+
+ $('[data-role="getonlybath"]').click(function(){
+       $.get("/room/withbath/true",(response)=>{
+           const div = $('[data-role="bathrooms"]');
+          div.text(JSON.stringify(response))
+        })
+
+})
+$('[data-role="or"]').click(function(){
+       $.get("/room/orbathorvip/true",(response)=>{
+           const div = $('[data-role="orbathorvip"]');
+          div.text(JSON.stringify(response))
+        })
+
+}) 
+    </script>
+  </body>
+</html>
